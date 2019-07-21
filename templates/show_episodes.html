@@ -1,0 +1,28 @@
+{% extends "webapp_template.html" %}
+{% block content %}
+
+<H1>{{ podcast.podcast_name }} | Episodes</H1>
+
+<P ALIGN = "Justified">Here are the episodes we've logged for the {{ podcast.podcast_name }} podcast:</P>
+<TABLE style = "width: 80%; border: 0">
+    {% for i in episodes %}
+    <TR bgcolor = "#F0F5F5" style = "width: 80%;">
+        <TD align = "Justified">
+            <B>{{i.episode_name}}</B>: {{ i.episode_description }}<BR>
+            <I>Published: {{ i.episode_date }}</I><BR>
+            <BR>
+        </TD>
+        <TD align = "Center" style = "width: 10%;">
+            {{ i.episode_listened }}<BR>
+        </TD>
+        <TD align = "Center" style = "width: 10%;">
+            <A HREF = "{{ url_for('edit_episodes', podcast_id = podcast.podcast_id, episode_id = i.episode_id) }}">EDIT</A><BR>
+            <A HREF = "{{ url_for('delete_episodes', podcast_id = podcast.podcast_id, episode_id = i.episode_id) }}">DELETE</A>
+        </TD>
+    </TR>
+    {% endfor %}
+</TABLE>
+
+<P ALIGN = "Center"><A HREF = "{{ url_for('new_episodes', podcast_id = podcast.podcast_id) }}">Add a new episode!</A></P>
+
+{% endblock %}

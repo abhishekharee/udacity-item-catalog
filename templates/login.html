@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<HTML lang="en">
+<HEAD>
+    <LINK rel = stylesheet type = text/css href = "{{ url_for('static', filename='styles.css') }}">
+    <SCRIPT src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></SCRIPT>
+    <SCRIPT src = "https://apis.google.com/js/client:platform.js?onload=start" async defer></SCRIPT>
+    <SCRIPT>
+        function start() {
+        gapi.load('auth2', function() {
+            auth2 = gapi.auth2.init({
+            client_id: '630111039864-2b4dkhgo0nl3ghsfu5d3m5oa8606e9v0.apps.googleusercontent.com'
+            });
+        });
+        }
+    </SCRIPT>
+</HEAD>
+<BODY>
+<P align = "Justify">
+I guess it's time to log in, so we know who you are! This app uses Google to manage logins. To log in, you gotta click this button:
+</P>
+<P align = "Center"></P>
+<button id="signinButton">Sign In with Google</button>
+</P>
+<div id="result"></div>
+</P>
+<SCRIPT>
+        $('#signinButton').click(function() {
+            function signInCallback(authResult){
+            if (authResult['code']){
+                $('#signinButton').attr('style', 'display: none');
+                $.ajax({
+                type: 'POST',
+                url: '/gconnect?state={{STATE}}',
+                headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+                },
+                contentType: 'application/octet-stream; charset=utf-8',
+                success:function(result){
+                    $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+                        setTimeout(function() {
+                        window.location.href = "/";
+                        }, 2000);
+                },
+                processData:false,
+                data:authResult['code']
+                });
+            } else{
+                // handle error
+                console.log('There was an error: ' + authResult['error']);
+                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+            }
+            }
+            auth2.grantOfflineAccess().then(signInCallback);
+        });
+</SCRIPT>
+</BODY>
+</HTML>

@@ -1,0 +1,19 @@
+{% extends "webapp_template.html" %}
+{% block content %}
+<H1>Add new Podcast</H1>
+So you want to add a new Podcast to the database? OK! Here's what we need from you:<BR>
+<BR>
+<FORM action = "{{ url_for('new_podcasts', ) }}" method = "post">
+    <LABEL for = "podcast_name">What is the name of the Podcast?</LABEL><BR>
+    <INPUT type = "text" name = "podcast_name" placeholder = "Enter podcast name"><BR>
+    <BR>
+    <LABEL for = "podcast_description">Please provide a brief description of the Podcast:</LABEL><BR>
+    <BR>
+    <TEXTAREA name = "podcast_description" class = "input_desc" wrap = "soft" placeholder = "Type a description of the podcast here"></TEXTAREA><BR>
+    <BR>
+    <BUTTON type = "submit" id ="submit">Add!</BUTTON>
+</FORM>
+<BR>
+<A HREF = "{{ url_for('show_podcasts') }}}">Cancel</A>
+
+{% endblock %}

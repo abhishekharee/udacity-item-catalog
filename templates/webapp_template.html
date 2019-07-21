@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<HTML lang="en">
+	<HEAD>
+		<LINK rel = stylesheet type = text/css href = "{{ url_for('static', filename='styles.css') }}">
+		<P ALIGN = "Right"><A href = '/login'>Login</A> | <A href = '/logout'>Logout</A></P>
+	</HEAD>
+	<BODY>
+		<DIV class="container">
+			{% block content %}
+			{% endblock %}
+		</DIV>
+	</BODY>
+</HTML>

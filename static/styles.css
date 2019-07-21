@@ -1,0 +1,23 @@
+* {
+	font-family: Courier, "Courier New", monospace;
+    font-weight: 400;
+    font-size: 20px;
+}
+
+H1 {
+	font-family: Courier, "Courier New", monospace;
+	font-size: 40px;
+	color: #334D4D;
+	font-weight: 700;
+}
+
+H2 {
+	font-size: 30px;
+	color: #476B6B;
+}
+
+.input_desc {
+    height: 100px;
+    width: 80%;
+    vertical-align: top;
+}

@@ -1,0 +1,14 @@
+{% extends "webapp_template.html" %}
+{% block content %}
+<H1>{{ podcast.podcast_name}} | {{ episode.episode_name }}</H1>
+
+<P ALIGN = "Justified">So, you want to delete the <I>{{episode.episode_name}}</I> episode from <B>{{podcast.podcast_name}}</B>? If you're sure...</P>
+
+<FORM action = "{{ url_for('delete_episodes', podcast_id = podcast.podcast_id, episode_id = episode.episode_id) }}" method = "POST">
+    <BUTTON type = "submit" id ="submit">Delete!</BUTTON>
+</FORM>
+<BR>
+<A HREF = "{{ url_for('show_episodes', podcast_id = podcast.podcast_id) }}">Get me outta here!</A>
+
+
+{% endblock %}
