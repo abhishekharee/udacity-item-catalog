@@ -4,7 +4,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 # Import database setup file
-from podcast_database_setup import Podcast, Episode, Base
+from podcast_database_setup import User, Podcast, Episode, Base
 
 # Create the SQLite engine
 engine = create_engine('sqlite:///podcastepisodes.db')
@@ -21,6 +21,17 @@ Base.metadata.bind = engine
 # session.rollback()
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+# Create user object
+user1 = User(
+    user_name="Abhishekharee Parthasarathy",
+    user_email="abhishekharee@gmail.com",
+    user_id=1
+)
+
+# Add user object to User database
+session.add(user1)
+session.commit()
 
 # Create podcast objects
 podcast1 = Podcast(
@@ -52,6 +63,7 @@ session.commit()
 
 # Create and add episode objects ...
 episode1 = Episode(
+    user=user1,
     episode_name='Not Just Another Labor Force',
     episode_description=(
         'If you think talent and hard work give top athletes all the leverage '
@@ -64,6 +76,7 @@ episode1 = Episode(
     podcast=podcast1)
 session.add(episode1)
 episode2 = Episode(
+    user=user1,
     episode_name='Extra: Domonique Foxworth Full Interview',
     episode_description=(
         'Stephen Dubner\'s conversation with the former N.F.L. player, union '
@@ -74,6 +87,7 @@ episode2 = Episode(
     podcast=podcast1)
 session.add(episode2)
 episode3 = Episode(
+    user=user1,
     episode_name=(
         'This Economist Predicted the Last Crisis. What\'s the Next One?'),
     episode_description=(
@@ -87,6 +101,7 @@ episode3 = Episode(
     podcast=podcast1)
 session.add(episode3)
 episode4 = Episode(
+    user=user1,
     episode_name='The Future of Meat',
     episode_description=(
         'Global demand for beef, chicken, and pork continues to rise. So do '
@@ -97,6 +112,7 @@ episode4 = Episode(
     podcast=podcast1)
 session.add(episode4)
 episode5 = Episode(
+    user=user1,
     episode_name='Where Do Good Ideas Come From?',
     episode_description=(
         'Whether you\'re mapping the universe, hosting a late-night talk '
@@ -108,6 +124,7 @@ episode5 = Episode(
     podcast=podcast1)
 session.add(episode5)
 episode6 = Episode(
+    user=user1,
     episode_name='A Good Idea Is Not Good Enough',
     episode_description=(
         'Whether you\'re building a business or a cathedral, execution is '
@@ -119,6 +136,7 @@ episode6 = Episode(
     episode_listened='Listened',
     podcast=podcast1)
 episode21 = Episode(
+    user=user1,
     episode_name='The Right To Speak',
     episode_description=(
         'Should all speech, even the most offensive, be allowed on college '
@@ -130,6 +148,7 @@ episode21 = Episode(
     podcast=podcast2)
 session.add(episode21)
 episode22 = Episode(
+    user=user1,
     episode_name='The Story Behind The Numbers',
     episode_description=(
         'Is life today better than ever before? Does the data bear that out? '
@@ -140,6 +159,7 @@ episode22 = Episode(
     podcast=podcast2)
 session.add(episode22)
 episode23 = Episode(
+    user=user1,
     episode_name='Dying Well',
     episode_description=(
         'Is there a way to talk about death candidly, without fear ... and '
@@ -150,6 +170,7 @@ episode23 = Episode(
     podcast=podcast2)
 session.add(episode23)
 episode24 = Episode(
+    user=user1,
     episode_name='Building Humane Cities',
     episode_description=(
         'Cities are symbols of hope and opportunity. But today, overcrowding '
@@ -161,6 +182,7 @@ episode24 = Episode(
     podcast=podcast2)
 session.add(episode24)
 episode25 = Episode(
+    user=user1,
     episode_name='Hacking The Law',
     episode_description=(
         'We have a vision of justice as blind, impartial, and fair - but in '
@@ -171,6 +193,7 @@ episode25 = Episode(
     podcast=podcast2)
 session.add(episode25)
 episode26 = Episode(
+    user=user1,
     episode_name='Unintended Consequences',
     episode_description=(
         'Human innovation has transformed the way we live, often for the '
@@ -182,6 +205,7 @@ episode26 = Episode(
     podcast=podcast2)
 session.add(episode26)
 episode27 = Episode(
+    user=user1,
     episode_name='Where Joy Hides',
     episode_description=(
         'When we focus so much on achievement and success, it\'s easy to '
@@ -193,6 +217,7 @@ episode27 = Episode(
     podcast=podcast2)
 session.add(episode27)
 episode40 = Episode(
+    user=user1,
     episode_name='Moving Forward',
     episode_description=(
         'When the life you\'ve built slips out of your grasp, you\'re often '
@@ -203,6 +228,7 @@ episode40 = Episode(
     podcast=podcast2)
 session.add(episode40)
 episode41 = Episode(
+    user=user1,
     episode_name='Live Episode! Dollar Shave Club: Michael Dubin',
     episode_description=(
         'At the end of 2010, Michael Dubin was working in marketing when he '
@@ -219,6 +245,7 @@ episode41 = Episode(
     podcast=podcast3)
 session.add(episode41)
 episode42 = Episode(
+    user=user1,
     episode_name='Lisa Price Of Carol\'s Daughter At The HIBT Summit',
     episode_description=(
         'It\'s our final episode in our series from this year\'s How I '
@@ -233,6 +260,7 @@ episode42 = Episode(
     podcast=podcast3)
 session.add(episode42)
 episode43 = Episode(
+    user=user1,
     episode_name='SoulCycle: Julie Rice & Elizabeth Cutler',
     episode_description=(
         'Before Elizabeth Cutler and Julie Rice met, they shared a common '
@@ -253,6 +281,7 @@ episode43 = Episode(
     podcast=podcast3)
 session.add(episode43)
 episode44 = Episode(
+    user=user1,
     episode_name='Bonobos: Andy Dunn',
     episode_description=(
         'When Andy Dunn was in business school, his housemate Brian Spaly '
@@ -273,6 +302,7 @@ episode44 = Episode(
     podcast=podcast3)
 session.add(episode44)
 episode45 = Episode(
+    user=user1,
     episode_name='Canva: Melanie Perkins',
     episode_description=(
         'When she was just 19 years old, Melanie Perkins dreamt of '
@@ -296,16 +326,20 @@ session.commit()
 
 # Check whether the load worked, by first storing the database contents in
 # variables ...
+users = session.query(User).all()
 podcasts = session.query(Podcast).all()
 episodes = session.query(Episode).all()
 
+# ... and printing the User database ...
+print "You have loaded the following Podcasts:"
+for i in users:
+    print " ", i.user_id, "|", i.user_name, "|", i.user_email
 # ... and printing the Podcast database ...
 print "You have loaded the following Podcasts:"
 for i in podcasts:
-    print "  ", i.podcast_id, "|", i.podcast_name, "|", i.podcast_description
+    print " ", i.podcast_id, "|", i.podcast_name, "|", i.podcast_description
 # ...followed by the Episode database.
 print "You have loaded the following Episodes:"
 for i in episodes:
-    print (
-        "  ", i.episode_id, "|", i.episode_name, "|", i.episode_description,
-        "|", i.episode_date,  "|", i.episode_listened, "|", i.podcast_id)
+    print (" ", i.episode_id, "|", i.episode_name, "|", i.episode_description,
+    "|", i.episode_date,  "|", i.episode_listened, "|", i.podcast_id)

@@ -11,12 +11,22 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 
+class User(Base):
+    __tablename__ = 'user'
+
+    user_id = Column(Integer, primary_key=True)
+    user_name = Column(String(50), nullable=False)
+    user_email = Column(String(50), nullable=False)
+
+
 class Podcast(Base):
     __tablename__ = 'podcast'
 
     podcast_id = Column(Integer, primary_key=True)
     podcast_name = Column(String(250), nullable=False)
     podcast_description = Column(String(1000), nullable=False)
+    podcast_user_id = Column(Integer, ForeignKey('user.user_id'))
+    user = relationship(User)
 
     @property
     def serialize(self):
@@ -38,6 +48,8 @@ class Episode(Base):
     episode_listened = Column(String(8), nullable=True)
     podcast_id = Column(Integer, ForeignKey('podcast.podcast_id'))
     podcast = relationship(Podcast)
+    episode_user_id = Column(Integer, ForeignKey('user.user_id'))
+    user = relationship(User)
 
     @property
     def serialize(self):

@@ -6,7 +6,7 @@ from flask import (Flask, render_template, request, redirect, url_for, flash,
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from podcast_database_setup import Base, Podcast, Episode
+from podcast_database_setup import Base, User, Podcast, Episode
 
 from flask import session as login_session
 import random
@@ -33,6 +33,8 @@ session = DBSession()
 # LOGIN BLOCK
 
 # Create anti-forgery state token
+
+
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -113,6 +115,11 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
+    user_id = getUserID(login_session['email'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+
     output = ''
     output += '<h1>Welcome, '
     output += login_session['username']
@@ -126,6 +133,8 @@ def gconnect():
     return output
 
 # Disconnect; Revoke a current user's token and reset their login_session
+
+
 @app.route('/logout')
 def gdisconnect():
     access_token = login_session['access_token']
@@ -160,63 +169,117 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
+# USER MANAGEMENT BLOCK
+
+
+def createUser(login_session):
+    new_user = User(
+        user_name=login_session['username'],
+        user_email=login_session['email'])
+    session.add(new_user)
+    session.commit()
+    user = session.query(
+        User).filter_by(user_email=login_session['email']).one()
+    return user.user_id
+
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(user_id=user_id).one()
+    return user
+
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(user_email=email).one()
+        return user.user_id
+    except:
+        return None
+
 # PODCAST MANAGEMENT BLOCK
 
 # Load homepage
+
+
 @app.route('/')
 def show_podcasts():
     podcasts = session.query(Podcast).all()
     return render_template('index.html', podcasts=podcasts)
 
 # Load podcasts into JSON format for API endpoint
+
+
 @app.route('/JSON')
 def show_podcasts_JSON():
     podcasts = session.query(Podcast).all()
     return jsonify(Podcast=[i.serialize for i in podcasts])
 
 # Add a Podcast
+
+
 @app.route('/new', methods=['GET', 'POST'])
 def new_podcasts():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        if (request.form['podcast_name']
-                and request.form['podcast_description']):
+        if (request.form['podcast_name'] and
+                request.form['podcast_description']):
             new_podcast = Podcast(podcast_name=request.form['podcast_name'],
                                   podcast_description=request.form[
-                                      'podcast_description'])
+                                      'podcast_description'],
+                                  podcast_user_id=login_session['user_id'])
             session.add(new_podcast)
             session.commit()
             return redirect(url_for('show_podcasts'))
+        else:
+            flash("Yeah..... you need to populate all of these fields to "
+                  "proceed... Try again please!")
+            return render_template('new_podcasts.html')
     else:
         return render_template('new_podcasts.html')
 
 # Edit Podcasts data
+
+
 @app.route('/<int:podcast_id>/edit', methods=['GET', 'POST'])
 def edit_podcasts(podcast_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     podcast_for_edit = session.query(
         Podcast).filter_by(podcast_id=podcast_id).one()
+    if 'username' not in login_session:
+        return redirect('/login')
+    if podcast_for_edit.podcast_user_id != login_session['user_id']:
+        return ("<script>function myFunction() {alert('You are not "
+                "authorized to edit this Podcast.');}</script><body onload="
+                "'myFunction()''>")
     if request.method == 'POST':
-        if (request.form['podcast_name']
-                and request.form['podcast_description']):
+        if (request.form['podcast_name'] and
+                request.form['podcast_description']):
             podcast_for_edit.podcast_name = request.form['podcast_name']
             podcast_for_edit.podcast_description = request.form[
                 'podcast_description']
-        session.add(podcast_for_edit)
-        session.commit()
-        return redirect(url_for('show_podcasts'))
+            session.add(podcast_for_edit)
+            session.commit()
+            return redirect(url_for('show_podcasts'))
+        else:
+            flash("Yeah..... you need to populate all of these fields to "
+                  "proceed... Try again please!")
+            return render_template(
+                'edit_podcasts.html', podcast=podcast_for_edit)
     else:
         return render_template('edit_podcasts.html', podcast=podcast_for_edit)
 
 # Delete Podcast from database
+
+
 @app.route('/<int:podcast_id>/delete', methods=['GET', 'POST'])
 def delete_podcasts(podcast_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     podcast_for_deletion = session.query(
         Podcast).filter_by(podcast_id=podcast_id).one()
+    if 'username' not in login_session:
+        return redirect('/login')
+    if podcast_for_deletion.podcast_user_id != login_session['user_id']:
+        return ("<script>function myFunction() {alert('You are not "
+                "authorized to delete this Podcast.');}</script><body onload="
+                "'myFunction()''>")
     if request.method == 'POST':
         session.delete(podcast_for_deletion)
         session.commit()
@@ -228,6 +291,8 @@ def delete_podcasts(podcast_id):
 # EPISODE MANAGEMENT BLOCK
 
 # Load list of episodes
+
+
 @app.route('/<int:podcast_id>')
 def show_episodes(podcast_id):
     podcast = session.query(Podcast).filter_by(podcast_id=podcast_id).one()
@@ -237,58 +302,82 @@ def show_episodes(podcast_id):
 
 # Load Podcast episodes (for a particular podcast) into JSON format for API
 # endpoint
+
+
 @app.route('/<int:podcast_id>/JSON')
 def show_episodes_JSON(podcast_id):
     episodes = session.query(Episode).filter_by(podcast_id=podcast_id).all()
     return jsonify(Episode=[i.serialize for i in episodes])
 
 # Load a particular podcast episode into JSON format for API endpoint
+
+
 @app.route('/<int:podcast_id>/<int:episode_id>/JSON')
 def show_episodes_particular_JSON(podcast_id, episode_id):
     episode = session.query(Episode).filter_by(episode_id=episode_id).one()
     return jsonify(Episode=episode.serialize)
 
 # Add a new episode
+
+
 @app.route('/<int:podcast_id>/new', methods=['GET', 'POST'])
 def new_episodes(podcast_id):
     if 'username' not in login_session:
         return redirect('/login')
     podcast = session.query(Podcast).filter_by(podcast_id=podcast_id).one()
     if request.method == 'POST':
-        if (request.form['episode_name']
-                and request.form['episode_description']
-                and request.form['episode_date']):
+        if (request.form['episode_name'] and
+                request.form['episode_description'] and
+                request.form['episode_date']):
             new_episode = Episode(
                 episode_name=request.form['episode_name'],
                 episode_description=request.form['episode_description'],
                 episode_date=request.form['episode_date'],
                 episode_listened='',
-                podcast_id=podcast_id)
+                podcast_id=podcast_id,
+                episode_user_id=login_session['user_id'])
             session.add(new_episode)
             session.commit()
             return redirect(url_for('show_episodes', podcast_id=podcast_id))
+        else:
+            flash("Yeah..... you need to populate all of these fields to "
+                  "proceed... Try again please!")
+            return render_template('new_episodes.html', podcast=podcast)
     else:
         return render_template('new_episodes.html', podcast=podcast)
 
 # Edit an existing episode
+
+
 @app.route('/<int:podcast_id>/<int:episode_id>/edit', methods=['GET', 'POST'])
 def edit_episodes(podcast_id, episode_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     podcast = session.query(
         Podcast).filter_by(podcast_id=podcast_id).one()
     episode_for_edit = session.query(
         Episode).filter_by(episode_id=episode_id).one()
+    if 'username' not in login_session:
+        return redirect('/login')
+    if episode_for_edit.episode_user_id != login_session['user_id']:
+        return ("<script>function myFunction() {alert('You are not "
+                "authorized to edit this episode.');}</script><body onload="
+                "'myFunction()''>")
     if request.method == 'POST':
-        if (request.form['episode_name']
-                and request.form['episode_description']
-                and request.form['episode_date']):
+        if (request.form['episode_name'] and
+                request.form['episode_description'] and
+                request.form['episode_date']):
             episode_for_edit.episode_name = request.form['episode_name']
             episode_for_edit.episode_description = request.form[
                 'episode_description']
             episode_for_edit.episode_date = request.form['episode_date']
             episode_for_edit.episode_listened = request.form[
                 'episode_listened']
+        else:
+            flash("Yeah..... you need to populate all of these fields to "
+                  "proceed (except the 'Listened' one)... Try again please!")
+            return render_template(
+                'edit_episodes.html',
+                podcast=podcast,
+                episode=episode_for_edit)
         session.add(episode_for_edit)
         session.commit()
         return redirect(url_for('show_episodes', podcast_id=podcast_id))
@@ -297,14 +386,20 @@ def edit_episodes(podcast_id, episode_id):
             'edit_episodes.html', podcast=podcast, episode=episode_for_edit)
 
 # Delete an existing episode
+
+
 @app.route('/<int:podcast_id>/<int:episode_id>/delete',
            methods=['GET', 'POST'])
 def delete_episodes(podcast_id, episode_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     podcast = session.query(Podcast).filter_by(podcast_id=podcast_id).one()
     episode_for_deletion = session.query(
         Episode).filter_by(episode_id=episode_id).one()
+    if episode_for_deletion.episode_user_id != login_session['user_id']:
+        return ("<script>function myFunction() {alert('You are not "
+                "authorized to delete this episode.');}</script><body onload="
+                "'myFunction()''>")
+    if 'username' not in login_session:
+        return redirect('/login')
     if request.method == 'POST':
         session.delete(episode_for_deletion)
         session.commit()
