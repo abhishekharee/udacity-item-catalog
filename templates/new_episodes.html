@@ -1,10 +1,17 @@
 {% extends "webapp_template.html" %}
 {% block content %}
-
 <H1>Add a new episode to {{ podcast.podcast_name }}</H1>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for i in messages%}
+<U>{{ messages[0] }}</U><BR>
+<BR>
+{% endfor %}
+{% endif %}
+{% endwith %}
 So you want to add a new episode, huh? OK! Here's what we need from you:<BR>
 <BR>
-<FORM action = "{{ url_for('new_episode', podcast_id = podcast.podcast_id) }}" method = "POST">
+<FORM action = "{{ url_for('new_episodes', podcast_id = podcast.podcast_id) }}" method = "POST">
     <LABEL for = "episode_name">What is the name of the episode?</LABEL><BR>
     <INPUT type = "text" name = "episode_name" placeholder = "Enter episode name"><BR>
     <BR>
